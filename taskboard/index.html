@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co;" />
+  <title>Taskboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== Nickname Picker ===== -->
+  <div id="nickname-picker" class="picker-overlay hidden" role="dialog" aria-modal="true" aria-label="Choose your nickname">
+    <div class="picker-card">
+      <h1 class="picker-title">Welcome to Taskboard</h1>
+      <p class="picker-sub">Enter your nickname to get started. Your team can see who's working on what.</p>
+      <div class="form-group">
+        <label for="picker-nickname">Your nickname</label>
+        <input
+          type="text"
+          id="picker-nickname"
+          class="form-control"
+          placeholder="e.g. Alice"
+          maxlength="50"
+          autocomplete="off"
+          aria-required="true"
+        />
+        <span id="picker-error" class="field-error hidden"></span>
+      </div>
+      <button type="button" id="picker-confirm" class="btn btn-primary picker-btn">Let's go →</button>
+    </div>
+  </div>
+
+  <!-- ===== Board Wrapper (hidden until nickname is set) ===== -->
+  <div id="board-wrapper" class="hidden">
+
+    <!-- ===== Header ===== -->
+    <header class="app-header">
+      <h1 class="app-title">Taskboard</h1>
+      <div class="toolbar">
+        <input
+          type="search"
+          id="search-input"
+          class="search-input"
+          placeholder="Search tasks…"
+          aria-label="Search tasks"
+        />
+        <div class="priority-filters" role="group" aria-label="Filter by priority">
+          <button class="filter-btn active" data-priority="High"   aria-pressed="true">High</button>
+          <button class="filter-btn active" data-priority="Medium" aria-pressed="true">Medium</button>
+          <button class="filter-btn active" data-priority="Low"    aria-pressed="true">Low</button>
+        </div>
+        <div id="assignee-filters" class="assignee-filters" role="group" aria-label="Filter by assignee">
+          <button id="assignee-filter-all" class="filter-btn filter-btn--assignee active" aria-pressed="true">All</button>
+        </div>
+        <button id="new-task-btn" class="btn btn-primary" aria-label="Create new task">+ New Task</button>
+      </div>
+      <div class="header-user">
+        <span id="header-nickname" class="header-nickname"></span>
+        <button id="change-user-btn" class="btn-link" aria-label="Change nickname">Change</button>
+      </div>
+    </header>
+
+    <!-- ===== Board ===== -->
+    <main class="board" aria-label="Task board">
+
+      <!-- To Do -->
+      <section class="column" id="col-todo" data-status="todo" aria-label="To Do column">
+        <div class="column-header">
+          <span class="column-title">To Do</span>
+          <span class="column-count" id="count-todo" aria-label="Task count">0</span>
+        </div>
+        <div class="card-list" id="list-todo" role="list"></div>
+        <button class="btn btn-add-col" data-status="todo" aria-label="Add task to To Do">+ Add Task</button>
+      </section>
+
+      <!-- Doing -->
+      <section class="column" id="col-doing" data-status="doing" aria-label="Doing column">
+        <div class="column-header">
+          <span class="column-title">Doing</span>
+          <span class="column-count" id="count-doing" aria-label="Task count">0</span>
+        </div>
+        <div class="card-list" id="list-doing" role="list"></div>
+        <button class="btn btn-add-col" data-status="doing" aria-label="Add task to Doing">+ Add Task</button>
+      </section>
+
+      <!-- Done -->
+      <section class="column" id="col-done" data-status="done" aria-label="Done column">
+        <div class="column-header">
+          <span class="column-title">Done</span>
+          <span class="column-count" id="count-done" aria-label="Task count">0</span>
+        </div>
+        <div class="card-list" id="list-done" role="list"></div>
+        <button class="btn btn-add-col" data-status="done" aria-label="Add task to Done">+ Add Task</button>
+      </section>
+
+    </main>
+
+  </div><!-- /#board-wrapper -->
+
+  <!-- ===== Task Modal ===== -->
+  <div id="task-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <header class="modal-header">
+        <h2 id="modal-title">New Task</h2>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close modal">&times;</button>
+      </header>
+
+      <form id="task-form" novalidate>
+        <input type="hidden" id="field-id" />
+        <input type="hidden" id="field-status" value="todo" />
+
+        <div class="form-group">
+          <label for="field-title">Title <span class="required" aria-hidden="true">*</span></label>
+          <input type="text" id="field-title" class="form-control" placeholder="What needs to be done?" required aria-required="true" />
+          <span class="field-error hidden" id="error-title">Title is required.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="field-description">Description</label>
+          <textarea id="field-description" class="form-control" rows="3" placeholder="Optional details…"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-priority">Priority</label>
+            <select id="field-priority" class="form-control">
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-due-date">Due Date</label>
+            <input type="date" id="field-due-date" class="form-control" min="2000-01-01" max="2099-12-31" />
+            <div class="date-shortcuts">
+              <button type="button" class="date-shortcut" data-offset="0">Today</button>
+              <button type="button" class="date-shortcut" data-offset="1">Tomorrow</button>
+              <button type="button" class="date-shortcut" data-offset="7">Next week</button>
+              <button type="button" class="date-shortcut" id="date-clear-btn">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-label">Label / Tag</label>
+            <input type="text" id="field-label" class="form-control" placeholder="e.g. Bug, Feature, Chore" />
+          </div>
+          <div class="form-group">
+            <label for="field-assignee">Assignee</label>
+            <select id="field-assignee" class="form-control">
+              <option value="">Unassigned</option>
+            </select>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="delete-task-btn" class="btn btn-danger hidden" aria-label="Delete task">Delete</button>
+          <div class="modal-actions">
+            <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="save-btn" class="btn btn-primary">Save</button>
+          </div>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Task Detail Modal ===== -->
+  <div id="detail-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div class="modal detail-modal">
+      <header class="modal-header">
+        <h2 id="detail-title"></h2>
+        <button class="modal-close" id="detail-close-btn" aria-label="Close detail">&times;</button>
+      </header>
+      <div class="detail-body">
+        <div class="detail-badges">
+          <span id="detail-priority" class="priority-badge"></span>
+          <span id="detail-label" class="card-label"></span>
+        </div>
+        <p id="detail-description" class="detail-description"></p>
+        <div class="detail-meta">
+          <span id="detail-assignee"></span>
+          <span id="detail-due"></span>
+          <span id="detail-created"></span>
+          <span id="detail-completed"></span>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <div class="modal-actions">
+          <button type="button" id="detail-edit-btn" class="btn btn-primary">Edit</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script type="module" src="js/ui.js"></script>
+</body>
+</html>
