@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Deploying this app as a publicly accessible webapp is **low-to-medium difficulty** for the MVP scope defined in `REQUIREMENTS.md`. The app is a static, client-side-only product — there is no server, no database, and no authentication. This makes initial deployment straightforward. However, scaling beyond MVP (multi-user, persistence, collaboration) introduces significant architectural complexity that must be planned for from the start to avoid costly rewrites.
+Deploying this app as a publicly accessible webapp is **low-to-medium difficulty** for the MVP scope defined in `REQUIREMENTS.md`. The app is a static frontend deployed to **Vercel**, backed by a hosted **Supabase** Postgres database. Initial deployment is straightforward via Git push. Risks 1–3 from the original assessment (localStorage per-device, no user isolation, data loss) have been resolved in v0.2.0 by the Supabase integration. Remaining complexity lies in real-time collaboration and authentication.
 
 ---
 
@@ -32,42 +32,24 @@ Since the MVP is pure HTML/CSS/JS with no server component, it can be deployed t
 | **Cloudflare Pages** | ✅ | ✅ | ✅ | Global CDN, very fast |
 | **AWS S3 + CloudFront** | Pay-as-you-go | ✅ | Manual/complex | Overkill for MVP |
 
-**Recommendation:** Start with **Netlify** or **Vercel** — zero config, free HTTPS, automatic deploys on Git push.
+**Recommendation:** **Vercel** — zero config, free HTTPS, automatic deploys on Git push. `vercel.json` is already configured in this repo.
 
 ---
 
 ## Key Problems & Risks
 
-### 1. `localStorage` Is Per-Browser, Per-Device
-**Problem:** Data stored in `localStorage` is tied to the exact browser on the exact device. A user opening the app on a second browser or device sees an empty board.
-
-**Impact:** High — this breaks the basic expectation that a webapp persists data across sessions and devices.
-
-**Mitigation:**
-- Accept this limitation explicitly in MVP scope and communicate it to users.
-- Plan a backend (database + API) for the first post-MVP iteration.
-- As an interim step, offer a JSON export/import so users can back up and restore their board manually.
+### ~~1. `localStorage` Is Per-Browser, Per-Device~~ ✅ RESOLVED (v0.2.0)
+**Resolution:** All task data is now stored in **Supabase** (hosted Postgres). `localStorage` is used only for the user's display-name / ID. Any device, any browser, same data.
 
 ---
 
-### 2. No User Isolation
-**Problem:** The MVP has no concept of users. If two people open the app on the same machine/browser, they share the same board data.
-
-**Impact:** Medium for personal use, critical for any team use.
-
-**Mitigation:** Add user authentication (e.g. Auth0, Firebase Auth, Supabase Auth) before any multi-user rollout.
+### ~~2. No User Isolation~~ ✅ RESOLVED (v0.2.0)
+**Resolution:** The nickname picker assigns each user a UUID stored in `localStorage`. Tasks carry an `assignee` field. Full auth (e.g. Supabase Auth) remains a future step if login/password flows are needed.
 
 ---
 
-### 3. Data Loss Risk
-**Problem:** `localStorage` can be cleared by the browser (privacy settings, clearing browsing data, incognito mode) or by the user accidentally. There is no backup.
-
-**Impact:** High — all tasks are permanently lost with no recovery path.
-
-**Mitigation:**
-- Auto-export to a downloadable JSON file as a backup mechanism.
-- Display a warning banner if storage is detected as cleared/empty on load.
-- Migrate to a real backend as soon as possible.
+### ~~3. Data Loss Risk~~ ✅ RESOLVED (v0.2.0)
+**Resolution:** Tasks are persisted server-side in Supabase. Browser data-clearing no longer affects task data. Supabase provides automatic daily backups on paid plans.
 
 ---
 
@@ -136,9 +118,8 @@ These are decisions that, if made incorrectly early, will require expensive rewr
 - **Recommendation:** Use Vanilla JS for the MVP; migrate to a framework if a second major feature iteration is planned.
 
 ### Decision 2 — `localStorage` vs. Backend from Day 1
-- `localStorage` is fine for a **single-user personal tool**.
-- If there is **any** expectation of multi-device or multi-user use, a backend should be in the first real release, not post-MVP.
-- **Recommendation:** Design the data model (task schema, board schema) as if it will be sent to an API. Use a clean `storage.js` abstraction layer so swapping `localStorage` for `fetch()` calls later is a single-file change.
+- ~~`localStorage` is fine for a **single-user personal tool**.~~
+- **v0.2.0 decision:** Supabase is used from the first deployed version. The `storage.js` abstraction layer proved its value — the swap from `localStorage` to Supabase was entirely contained within that one file.
 
 ### Decision 3 — Monolithic HTML file vs. Module Structure
 - A single `index.html` is fine for prototyping.

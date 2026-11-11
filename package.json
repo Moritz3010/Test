@@ -1,0 +1,27 @@
+{
+  "name": "seminaridee",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node taskboard/js/date-utils.test.js",
+    "test:visual": "npx playwright test --config=playwright.config.cjs",
+    "test:visual:report": "npx playwright show-report tests/report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moritz3010/Test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Moritz3010/Test/issues"
+  },
+  "homepage": "https://github.com/Moritz3010/Test#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "serve": "^14.2.7"
+  }
+}

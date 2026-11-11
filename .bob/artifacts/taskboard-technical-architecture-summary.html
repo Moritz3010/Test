@@ -1,0 +1,318 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    background: #f7f8fa;
+    color: #1f2328;
+    padding: 32px 16px 48px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #57606a; font-size: 14px; margin-bottom: 32px; }
+
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+       color: #57606a; margin: 28px 0 12px; }
+
+  /* Architecture diagram */
+  .arch {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .arch-box {
+    width: 100%;
+    max-width: 480px;
+    background: #f7f8fa;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 18px;
+    text-align: center;
+  }
+  .arch-box strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .arch-box span { font-size: 12px; color: #57606a; }
+  .arch-box.vercel  { border-color: #3b82d4; background: #eff6ff; }
+  .arch-box.browser { border-color: #6b7280; background: #f9fafb; }
+  .arch-box.supabase{ border-color: #22c55e; background: #f0fdf4; }
+  .arch-box.postgres{ border-color: #8b5cf6; background: #f5f3ff; }
+
+  .arch-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+  }
+  .arch-arrow .line { width: 2px; height: 18px; background: #d1d5db; }
+  .arch-arrow .label {
+    font-size: 11px;
+    color: #57606a;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 1px 8px;
+  }
+
+  /* Stack table */
+  table { width: 100%; border-collapse: collapse; background: #fff;
+          border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+  th { background: #f7f8fa; font-size: 11px; font-weight: 700; text-transform: uppercase;
+       letter-spacing: 0.5px; color: #57606a; padding: 10px 14px; text-align: left;
+       border-bottom: 1px solid #e5e7eb; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 13px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .tag-js  { background: #fef9c3; color: #92400e; }
+  .tag-sql { background: #ede9fe; color: #5b21b6; }
+  .tag-html{ background: #fee2e2; color: #991b1b; }
+  .tag-css { background: #dbeafe; color: #1e40af; }
+  .tag-json{ background: #dcfce7; color: #166534; }
+
+  /* Flow steps */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    background: #3b82d4;
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .step-desc  { font-size: 12px; color: #57606a; }
+
+  .step-num.green { background: #22c55e; }
+  .step-num.purple { background: #8b5cf6; }
+
+  /* File map */
+  .file-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .file-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .file-name { font-family: "SF Mono", "Consolas", monospace; font-size: 12px;
+               font-weight: 600; color: #1f2328; margin-bottom: 4px; }
+  .file-desc { font-size: 12px; color: #57606a; }
+
+  .card-section {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 12px;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Taskboard — Technical Architecture</h1>
+  <p class="subtitle">A serverless Kanban app for a 3-person team — no backend server, no containers, no maintenance</p>
+
+  
+  <h2>Architecture</h2>
+  <div class="arch">
+    <div class="arch-box browser">
+      <strong>Browser</strong>
+      <span>Chrome / Firefox / Edge — runs the entire app</span>
+    </div>
+    <div class="arch-arrow">
+      <div class="line"></div>
+      <div class="label">serves HTML / CSS / JS</div>
+      <div class="line"></div>
+    </div>
+    <div class="arch-box vercel">
+      <strong>Vercel CDN</strong>
+      <span>Hosts static files — index.html, style.css, *.js — globally distributed</span>
+    </div>
+    <div class="arch-arrow">
+      <div class="line"></div>
+      <div class="label">HTTPS REST API calls (fetch)</div>
+      <div class="line"></div>
+    </div>
+    <div class="arch-box supabase">
+      <strong>Supabase (PostgREST API)</strong>
+      <span>Auto-generated REST API — no custom server code needed</span>
+    </div>
+    <div class="arch-arrow">
+      <div class="line"></div>
+      <div class="label">SQL queries</div>
+      <div class="line"></div>
+    </div>
+    <div class="arch-box postgres">
+      <strong>PostgreSQL database</strong>
+      <span>Managed by Supabase — tables: users, tasks</span>
+    </div>
+  </div>
+
+  
+  <h2>Languages &amp; Technologies</h2>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Language / Tech</th><th>What it does</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Structure</td>
+        <td><span class="tag tag-html">HTML5</span></td>
+        <td>Board layout, modals, nickname picker — all markup in <code>index.html</code></td>
+      </tr>
+      <tr>
+        <td>Styling</td>
+        <td><span class="tag tag-css">CSS3</span></td>
+        <td>All visual design — CSS custom properties, grid layout, animations</td>
+      </tr>
+      <tr>
+        <td>App logic</td>
+        <td><span class="tag tag-js">JavaScript ES2020</span></td>
+        <td>Task CRUD, drag-and-drop, modals, filters — runs entirely in the browser as ES modules</td>
+      </tr>
+      <tr>
+        <td>Database API</td>
+        <td><span class="tag tag-js">supabase-js</span></td>
+        <td>Client library that wraps Supabase's REST API — loaded from CDN</td>
+      </tr>
+      <tr>
+        <td>Database</td>
+        <td><span class="tag tag-sql">PostgreSQL 15</span></td>
+        <td>Stores users and tasks — hosted and managed by Supabase, zero maintenance</td>
+      </tr>
+      <tr>
+        <td>Schema</td>
+        <td><span class="tag tag-sql">SQL</span></td>
+        <td>Two tables: <code>users</code> (nicknames) and <code>tasks</code> (all task data)</td>
+      </tr>
+      <tr>
+        <td>Deploy config</td>
+        <td><span class="tag tag-json">JSON</span></td>
+        <td><code>vercel.json</code> tells Vercel where to find the files and sets security headers</td>
+      </tr>
+    </tbody>
+  </table>
+
+  
+  <h2>What Happens When You Open the App</h2>
+  <div class="card-section">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Browser requests the page from Vercel</div>
+          <div class="step-desc">Vercel serves <code>index.html</code>, <code>style.css</code>, and all <code>.js</code> files from its global CDN — no server-side rendering, pure static files.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">JavaScript boots in the browser</div>
+          <div class="step-desc"><code>ui.js</code> is the entry point. It checks <code>localStorage</code> for a saved user ID. If none, it shows the nickname picker. If found, it goes straight to the board.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num green">3</div>
+        <div class="step-body">
+          <div class="step-title">Nickname is saved to Supabase</div>
+          <div class="step-desc">On first visit, the nickname is upserted into the <code>users</code> table via the Supabase API. The returned user ID is stored in <code>localStorage</code> for future visits.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num green">4</div>
+        <div class="step-body">
+          <div class="step-title">Tasks are loaded from Supabase</div>
+          <div class="step-desc"><code>storage.js</code> calls <code>GET /rest/v1/tasks?select=*,users(nickname)</code> — a single HTTPS request that returns all tasks with their assignee nicknames joined in.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num purple">5</div>
+        <div class="step-body">
+          <div class="step-title">Every create / edit / delete / drag triggers an API call</div>
+          <div class="step-desc">No localStorage for tasks — every mutation is an immediate <code>POST</code>, <code>PATCH</code>, or <code>DELETE</code> to Supabase. The board re-renders once the response comes back.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <h2>Key Files</h2>
+  <div class="file-grid">
+    <div class="file-card">
+      <div class="file-name">supabase-client.js</div>
+      <div class="file-desc">Initialises the Supabase connection. Contains the project URL and anon key. No other file touches Supabase directly.</div>
+    </div>
+    <div class="file-card">
+      <div class="file-name">storage.js</div>
+      <div class="file-desc">All database queries live here. Maps DB snake_case columns to JS camelCase. The single swap point if the backend ever changes.</div>
+    </div>
+    <div class="file-card">
+      <div class="file-name">board.js</div>
+      <div class="file-desc">Task CRUD logic and card rendering. Calls storage.js for persistence. Never touches the DB directly.</div>
+    </div>
+    <div class="file-card">
+      <div class="file-name">ui.js</div>
+      <div class="file-desc">All event wiring — modals, nickname picker, filters, drag-and-drop. The app entry point.</div>
+    </div>
+    <div class="file-card">
+      <div class="file-name">drag-state.js</div>
+      <div class="file-desc">Tiny shared flag that prevents the detail modal from opening when a card is dropped after dragging.</div>
+    </div>
+    <div class="file-card">
+      <div class="file-name">vercel.json</div>
+      <div class="file-desc">Tells Vercel to serve the <code>taskboard/</code> folder as a static site and sets CSP security headers.</div>
+    </div>
+  </div>
+
+  
+  <h2>Why There Is No Backend Server</h2>
+  <div class="card-section" style="font-size:13px;color:#1f2328;line-height:1.7">
+    <p>Traditional apps have three layers: <strong>frontend → backend API server → database</strong>. This app skips the middle layer entirely.</p>
+    <br />
+    <p>Supabase's <strong>PostgREST</strong> engine automatically generates a full REST API from the database schema. The <code>users</code> and <code>tasks</code> tables are instantly accessible as HTTP endpoints. <strong>Row Level Security (RLS)</strong> policies on the database control what the browser is allowed to read and write — so there is no need for a custom API server to enforce those rules.</p>
+    <br />
+    <p>This architecture is called <strong>serverless</strong> or <strong>BaaS (Backend as a Service)</strong>. It is well-suited for small teams where the data model is simple and there is no need for complex server-side business logic.</p>
+  </div>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>

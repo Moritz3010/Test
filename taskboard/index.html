@@ -11,9 +11,11 @@
 
   <!-- ===== Nickname Picker ===== -->
   <div id="nickname-picker" class="picker-overlay hidden" role="dialog" aria-modal="true" aria-label="Choose your nickname">
+    <div class="picker-headline">
+      <h1>Welcome to Taskboard 🎯</h1>
+      <p>Enter your nickname to get started. Your team can see who's working on what.</p>
+    </div>
     <div class="picker-card">
-      <h1 class="picker-title">Welcome to Taskboard</h1>
-      <p class="picker-sub">Enter your nickname to get started. Your team can see who's working on what.</p>
       <div class="form-group">
         <label for="picker-nickname">Your nickname</label>
         <input
@@ -132,7 +134,7 @@
           </div>
           <div class="form-group">
             <label for="field-due-date">Due Date</label>
-            <input type="date" id="field-due-date" class="form-control" min="2000-01-01" max="2099-12-31" />
+            <input type="date" id="field-due-date" class="form-control" />
             <div class="date-shortcuts">
               <button type="button" class="date-shortcut" data-offset="0">Today</button>
               <button type="button" class="date-shortcut" data-offset="1">Tomorrow</button>

@@ -5,6 +5,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.2.0] — 2025-11-11
+
+### Added
+- **Supabase backend integration** — all task data now persisted in a hosted Postgres database; `storage.js` fully rewritten to use Supabase JS client with parameterised queries
+- **Nickname picker** — first-visit flow prompts the user for a display name; stored in `localStorage` (user ID only, no task data in browser storage)
+- **Assignee feature** — tasks can be assigned to a team member; assignee chip shown on card; filter by assignee in toolbar
+- **Date shortcuts** — "Today", "Tomorrow", "Next week", "Clear" buttons in date fields
+- **Date field constraints** — `min = today`, `max = today + 365 days`, enforced dynamically on every modal open
+- **Pure date utility module** `date-utils.js` — 5 exported functions (`todayISO`, `tomorrowISO`, `nextWeekISO`, `isOverdue`, `friendlyDate`)
+- **Unit test suite** — `date-utils.test.js` with 31 tests; run with `npm test`
+- **Playwright visual test suite** — `tests/taskboard.spec.cjs` with 26 tests across 6 suites; run with `npm run test:visual`
+- **`vercel.json`** deployment config with static output directory and `Content-Security-Policy` response headers
+- **`supabase-client.js`** leaf module for Supabase client initialisation
+- **`drag-state.js`** shared leaf module for cross-module drag flag
+
+### Changed
+- **Full visual redesign** — indigo→pink gradient header, column-specific colour identities (indigo/orange/emerald), Inter font via Google Fonts, lifted card shadows, outlined priority badges, blurred modal backdrop
+- **`board.js`** rewritten as fully async (all CRUD operations await Supabase)
+- **`storage.js`** now an async API layer (snake_case ↔ camelCase mapping between DB and frontend)
+- **`package.json`** updated with `"type": "module"` and `npm test` / `npm run test:visual` scripts
+- Hosting recommendation changed from Netlify to **Vercel** (aligned with `vercel.json` config)
+
+### Fixed
+- Risks 1–3 from `STRATEGY.md` (localStorage per-device, no user isolation, data loss) resolved by Supabase backend
+
+---
+
 ## [0.1.0] — 2025-07-10
 
 ### Added

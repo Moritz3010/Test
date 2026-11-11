@@ -11,6 +11,7 @@ import { dragState } from './drag-state.js';
 import {
   loadUsers, loadOrCreateUser, getLocalUserId, setLocalUserId, clearLocalUserId,
 } from './storage.js';
+import { toLocalISODate, getTodayISO, getMaxDateISO, clampDate, addDays } from './date-utils.js';
 
 // ─── DOM references ───────────────────────────────────────────────────────────
 const modal         = document.getElementById('task-modal');
@@ -188,12 +189,7 @@ document.getElementById('assignee-filter-all')?.addEventListener('click', functi
 });
 
 // ─── Date shortcuts ───────────────────────────────────────────────────────────
-function toLocalISODate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+// toLocalISODate, addDays, clampDate imported from date-utils.js
 
 function setActiveShortcut(btn) {
   dateShortcuts.forEach(b => b.classList.remove('active'));
@@ -218,9 +214,8 @@ dateClearBtn.addEventListener('click', () => {
 
 fieldDueDate.addEventListener('change', () => {
   setActiveShortcut(null);
-  if (!fieldDueDate.value) return;
-  if (fieldDueDate.value < fieldDueDate.min) fieldDueDate.value = fieldDueDate.min;
-  if (fieldDueDate.value > fieldDueDate.max) fieldDueDate.value = fieldDueDate.max;
+  // Re-read min/max from the element — these are set dynamically on modal open
+  fieldDueDate.value = clampDate(fieldDueDate.value, fieldDueDate.min, fieldDueDate.max);
 });
 
 // ─── Drag & Drop (SortableJS) ─────────────────────────────────────────────────
@@ -331,6 +326,8 @@ export async function openCreateModal(status = 'todo') {
   fieldTitle.value        = '';
   fieldDesc.value         = '';
   fieldPriority.value     = 'Medium';
+  fieldDueDate.min        = getTodayISO();
+  fieldDueDate.max        = getMaxDateISO();
   fieldDueDate.value      = '';
   fieldLabel.value        = '';
   errorTitle.classList.add('hidden');
@@ -352,7 +349,10 @@ export async function openEditModal(id) {
   fieldTitle.value        = task.title;
   fieldDesc.value         = task.description;
   fieldPriority.value     = task.priority;
-  fieldDueDate.value      = task.dueDate;
+  fieldDueDate.min        = getTodayISO();
+  fieldDueDate.max        = getMaxDateISO();
+  // If existing due date is out of the new window, clamp it
+  fieldDueDate.value      = clampDate(task.dueDate, fieldDueDate.min, fieldDueDate.max);
   fieldLabel.value        = task.label;
   errorTitle.classList.add('hidden');
   fieldTitle.classList.remove('error');
